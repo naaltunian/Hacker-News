@@ -48,7 +48,9 @@ class App extends Component {
     const {searchTerm, list} = this.state
     return (
       <div>
-        <Search value={searchTerm} onChange={this.onSearchChange} />
+        <Search value={searchTerm} onChange={this.onSearchChange} >
+          Search
+        </Search>
         <Table list={list} pattern={searchTerm} onDismiss={this.onDismiss} />
       </div>
     );
