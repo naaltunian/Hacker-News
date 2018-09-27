@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import Search from './Components/Search.js';
 import Table from './Components/Table.js';
+import Button from './Components/Button.js';
 
 const list = [
   {
