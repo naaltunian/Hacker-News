@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
+import Search from './Components/Search.js';
+import Table from './Components/Table.js';
+import Button from './Components/Button.js';
 
 const list = [
   {
@@ -20,9 +23,16 @@ const list = [
   }
 ]
 
+// function isSearched(searchTerm) {
+//   return function (item) {
+//     return item.title.toLowerCase().includes(searchTerm.toLowerCase());
+//   }
+// }
+
 class App extends Component {
   state = {
-    list: list
+    list: list,
+    searchTerm: ""
   }
 
   onDismiss = (id) => {
@@ -31,25 +41,35 @@ class App extends Component {
     this.setState({list: updatedList});
   }
 
+  onSearchChange = (e) => {
+    this.setState({searchTerm: e.target.value});
+  }
+
   render() {
+    const {searchTerm, list} = this.state
     return (
       <div>
-        {this.state.list.map((item) => {
-          return(
-            <div key={item.objectID}>
-              <span><a href={item.url}>{item.title}</a></span>
-              <span>{item.author}</span>
-              <span>{item.num_comments}</span>
-              <span>
-                <button onClick={() => this.onDismiss(item.objectID)} type="button">Dismiss</button>
-              </span>
-            </div>
-        )
-        })
-      }
+        <Search value={searchTerm} onChange={this.onSearchChange} >
+          Search
+        </Search>
+        <Table list={list} pattern={searchTerm} onDismiss={this.onDismiss} />
       </div>
     );
   }
 }
 
 export default App;
+
+// {this.state.list.filter(isSearched(this.state.searchTerm)).map((item) => {
+//   return(
+//     <div key={item.objectID}>
+//       <span><a href={item.url}>{item.title}</a></span>
+//       <span>{item.author}</span>
+//       <span>{item.num_comments}</span>
+//       <span>
+//         <button onClick={() => this.onDismiss(item.objectID)} type="button">Dismiss</button>
+//       </span>
+//     </div>
+// )
+// })
+// }
