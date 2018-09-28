@@ -3,35 +3,19 @@ import './App.css';
 import Search from './Components/Search.js';
 import Table from './Components/Table.js';
 
-const list = [
-  {
-    title: "React",
-    url: "https://reactjs.org/",
-    author: "Jordan Walke",
-    num_comments: 3,
-    points: 4,
-    objectID: 0
-  },
-  {
-    title: "Redux",
-    url: "https://redux.js.org/",
-    author: "Dan Abramov, Andrew Clark",
-    num_comments: 2,
-    points: 5,
-    objectID: 1
-  }
-]
-
-// function isSearched(searchTerm) {
-//   return function (item) {
-//     return item.title.toLowerCase().includes(searchTerm.toLowerCase());
-//   }
-// }
+const DEFAULT_QUERY = 'react';
+const BASE_PATH = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = "/search";
+const PARAM_SEARCH = "query=";
 
 class App extends Component {
   state = {
-    list: list,
-    searchTerm: ""
+    result: null,
+    searchTerm: DEFAULT_QUERY
+  }
+
+  setSearchTopStories = (result) => {
+    this.setState({result});
   }
 
   onDismiss = (id) => {
@@ -44,8 +28,17 @@ class App extends Component {
     this.setState({searchTerm: e.target.value});
   }
 
+  componentDidMount() {
+    const {searchTerm} = this.state;
+    fetch(`${BASE_PATH}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`)
+    .then(response => response.json())
+    .then(result => this.setSearchTopStories(result))
+    .catch(error => error);
+  }
+
   render() {
-    const {searchTerm, list} = this.state
+    const {searchTerm, result} = this.state
+    if(!result) {return null;}
     return (
       <div className="page">
         <div className="interactions">
@@ -53,24 +46,10 @@ class App extends Component {
             Search
           </Search>
         </div>
-        <Table list={list} pattern={searchTerm} onDismiss={this.onDismiss} />
+        <Table list={result.hits} pattern={searchTerm} onDismiss={this.onDismiss} />
       </div>
     );
   }
 }
 
 export default App;
-
-// {this.state.list.filter(isSearched(this.state.searchTerm)).map((item) => {
-//   return(
-//     <div key={item.objectID}>
-//       <span><a href={item.url}>{item.title}</a></span>
-//       <span>{item.author}</span>
-//       <span>{item.num_comments}</span>
-//       <span>
-//         <button onClick={() => this.onDismiss(item.objectID)} type="button">Dismiss</button>
-//       </span>
-//     </div>
-// )
-// })
-// }
