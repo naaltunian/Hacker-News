@@ -1,10 +1,11 @@
 import React from "react";
+import Button from './Button.js';
 
-const Search = ({value, onChange, children}) => {
+const Search = ({value, onChange, onSubmit, children}) => {
   return (
-    <form>
-      {children}
-      <input value={value} onChange={onChange} type="text"></input>
+    <form onSubmit={onSubmit}>
+      <input value={value} onChange={onChange} type="text" />
+      <button type='submit'>{children}</button>
     </form>
   )
 }

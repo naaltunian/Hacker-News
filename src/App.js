@@ -18,22 +18,33 @@ class App extends Component {
     this.setState({result});
   }
 
+// change list to result?
   onDismiss = (id) => {
     const isNotID = item => item.objectID !== id;
-    const updatedList = this.state.list.filter(isNotID);
-    this.setState({list: updatedList});
+    const updatedHits = this.state.result.hits.filter(isNotID);
+    this.setState({result: { ...this.state.result, hits: updatedHits }});
   }
 
   onSearchChange = (e) => {
     this.setState({searchTerm: e.target.value});
   }
 
-  componentDidMount() {
-    const {searchTerm} = this.state;
-    fetch(`${BASE_PATH}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`)
+  onSearchSubmit = (e) => {
+    e.preventDefault();
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStories(searchTerm);
+  }
+
+  fetchSearchTopStories = (searchTerm) => {
+    fetch(`${BASE_PATH}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
     .then(response => response.json())
     .then(result => this.setSearchTopStories(result))
     .catch(error => error);
+  }
+
+  componentDidMount() {
+    const {searchTerm} = this.state;
+    this.fetchSearchTopStories(searchTerm);
   }
 
   render() {
@@ -42,11 +53,11 @@ class App extends Component {
     return (
       <div className="page">
         <div className="interactions">
-          <Search value={searchTerm} onChange={this.onSearchChange} >
+          <Search value={searchTerm} onChange={this.onSearchChange} onSubmit={this.onSearchSubmit}>
             Search
           </Search>
         </div>
-        <Table list={result.hits} pattern={searchTerm} onDismiss={this.onDismiss} />
+        { result ? <Table list={result.hits} onDismiss={this.onDismiss} /> : null }
       </div>
     );
   }
