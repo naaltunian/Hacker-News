@@ -4,72 +4,89 @@ import Search from './Components/Search.js';
 import Table from './Components/Table.js';
 import Button from './Components/Button.js';
 
-const list = [
-  {
-    title: "React",
-    url: "https://reactjs.org/",
-    author: "Jordan Walke",
-    num_comments: 3,
-    points: 4,
-    objectID: 0
-  },
-  {
-    title: "Redux",
-    url: "https://redux.js.org/",
-    author: "Dan Abramov, Andrew Clark",
-    num_comments: 2,
-    points: 5,
-    objectID: 1
-  }
-]
-
-// function isSearched(searchTerm) {
-//   return function (item) {
-//     return item.title.toLowerCase().includes(searchTerm.toLowerCase());
-//   }
-// }
+const DEFAULT_QUERY = 'react';
+const DEFAULT_HPP = '100';
+const BASE_PATH = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = "/search";
+const PARAM_SEARCH = "query=";
+const PARAM_PAGE = "page=";
+const PARAM_HPP = "hitsPerPage=";
 
 class App extends Component {
   state = {
-    list: list,
-    searchTerm: ""
+    results: null,
+    searchKey: "",
+    searchTerm: DEFAULT_QUERY
+  }
+
+  setSearchTopStories = (result) => {
+    const {hits, page} = result;
+    const { searchKey, results } = this.state;
+    const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+    const updatedHits = [...oldHits, ...hits];
+    this.setState({ results: { ...results, [searchKey] : {hits: updatedHits, page } } });
+  }
+
+  // caches previously searched results
+  cacheSearchTopStories(searchTerm) {
+    return !this.state.results[searchTerm];
   }
 
   onDismiss = (id) => {
+    const { searchKey, results } = this.state;
+    const { hits, page } = results[searchKey];
     const isNotID = item => item.objectID !== id;
-    const updatedList = this.state.list.filter(isNotID);
-    this.setState({list: updatedList});
+    const updatedHits = hits.filter(isNotID);
+    this.setState({results: { ...results, [searchKey]: {hits: updatedHits, page} }});
   }
 
   onSearchChange = (e) => {
     this.setState({searchTerm: e.target.value});
   }
 
+  onSearchSubmit = (e) => {
+    e.preventDefault();
+    const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm});
+    if (this.cacheSearchTopStories(searchTerm)) {
+      this.fetchSearchTopStories(searchTerm);
+    }
+  }
+
+  fetchSearchTopStories = (searchTerm, page = 0) => {
+    fetch(`${BASE_PATH}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    .then(response => response.json())
+    .then(result => this.setSearchTopStories(result))
+    .catch(error => error);
+  }
+
+  componentDidMount() {
+    const {searchTerm} = this.state;
+    this.setState({ searchKey: searchTerm});
+    this.fetchSearchTopStories(searchTerm);
+  }
+
   render() {
-    const {searchTerm, list} = this.state
+    const {searchTerm, results, searchKey} = this.state
+    const page = (results && results[searchKey] && results[searchKey].page) || 0;
+    const list = (results && results[searchKey] && results[searchKey].hits) || [];
+    if(!results) {return null;}
     return (
-      <div>
-        <Search value={searchTerm} onChange={this.onSearchChange} >
-          Search
-        </Search>
-        <Table list={list} pattern={searchTerm} onDismiss={this.onDismiss} />
+      <div className="page">
+        <div className="interactions">
+          <Search value={searchTerm} onChange={this.onSearchChange} onSubmit={this.onSearchSubmit}>
+            Search
+          </Search>
+        </div>
+        <Table list={list} onDismiss={this.onDismiss} />
+        <div className="interactions">
+          <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
+            More
+          </Button>
+        </div>
       </div>
     );
   }
 }
 
 export default App;
-
-// {this.state.list.filter(isSearched(this.state.searchTerm)).map((item) => {
-//   return(
-//     <div key={item.objectID}>
-//       <span><a href={item.url}>{item.title}</a></span>
-//       <span>{item.author}</span>
-//       <span>{item.num_comments}</span>
-//       <span>
-//         <button onClick={() => this.onDismiss(item.objectID)} type="button">Dismiss</button>
-//       </span>
-//     </div>
-// )
-// })
-// }
