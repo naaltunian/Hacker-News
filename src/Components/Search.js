@@ -1,5 +1,4 @@
 import React from "react";
-import Button from './Button.js';
 
 const Search = ({value, onChange, onSubmit, children}) => {
   return (
