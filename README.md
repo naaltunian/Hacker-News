@@ -11,6 +11,7 @@ Clone the repository and run, ```npm install```. Run ```npm start```.
 ### Future Additions
 
 - Further styling the application
+- Make app mobile responsive
 
 ---
 
